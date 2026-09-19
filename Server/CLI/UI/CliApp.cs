@@ -59,21 +59,33 @@ public class CliApp
             if (CurrentUser != null)
             {
                 Console.WriteLine("Choose an option:");
-                Console.WriteLine("6. Create a Post");
-                Console.WriteLine("7. Add Comment");
-                Console.WriteLine("8. Logout");
+                Console.WriteLine("1. Display Posts");
+                Console.WriteLine("2. View Post Details");
+                Console.WriteLine("3. Create a Post");
+                Console.WriteLine("4. Delete a Post");
+                Console.WriteLine("5. Add Comment");
+                Console.WriteLine("6. Logout");
 
                 input = Console.ReadLine();
 
                 switch (input)
                 {
-                    case "6":
+                    case "1":
+                        await DisplayPostsAsync();
+                        break;
+                    case "2":
+                        await ViewPostDetailsAsync();
+                        break;
+                    case "3":
                         await CreatePostAsync();
                         break;
-                    case "7":
+                    case "4":
+                        await DeletePostAsync();
+                        break;
+                    case "5":
                         await AddCommentAsync();
                         break;
-                    case "8":
+                    case "6":
                         CurrentUser = null;
                         Console.WriteLine("Logged out successfully.");
                         break;
@@ -162,6 +174,14 @@ public class CliApp
         {
             Console.WriteLine("Invalid Post ID.");
         }
+        Console.WriteLine("Press Enter to return to the main menu.");
+        Console.ReadLine();
+    }
+    
+    private async Task DeletePostAsync()
+    {
+        var deletePostView = new DeletePostView(PostRepository);
+        await deletePostView.DeletePostAsync();
         Console.WriteLine("Press Enter to return to the main menu.");
         Console.ReadLine();
     }
