@@ -72,7 +72,7 @@ public Task<Comment> AddCommentAsync(Comment comment)
         Comment? commentToRemove = comments.SingleOrDefault(c => c.CommentId == id);
         if (commentToRemove is null)
         {
-            throw new InvalidOperationException($"Post with ID '{id}' not found");
+            throw new InvalidOperationException($"Comment with ID '{id}' not found");
         }
 
         comments.Remove(commentToRemove);

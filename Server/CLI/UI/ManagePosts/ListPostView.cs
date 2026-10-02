@@ -13,7 +13,7 @@ public class ListPostView
         this.postRepository = postRepository;
     }
 
-    public async Task DisplayPostsAsync()
+    public void DisplayPosts()
     {
         var posts = postRepository.GetManyPosts().ToList();
 

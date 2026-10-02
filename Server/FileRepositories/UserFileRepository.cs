@@ -10,7 +10,7 @@ public class UserFileRepository : IUserRepository
 
     public UserFileRepository()
     {
-        if (!File.Exists(filePath))
+        if (!File.Exists(filePath) || new FileInfo(filePath).Length == 0)
         {
             File.WriteAllText(filePath, "[]");
         }
@@ -20,7 +20,7 @@ public class UserFileRepository : IUserRepository
     {
         string usersAsJson = await File.ReadAllTextAsync(filePath);
         List<User> users = JsonSerializer.Deserialize<List<User>>(usersAsJson)!;
-        int maxId = users.Count > 0 ? users.Max(u => u.UserId) : 1;
+        int maxId = users.Count > 0 ? users.Max(u => u.UserId) : 0;
         user.UserId = maxId + 1;
         users.Add(user);
         usersAsJson = JsonSerializer.Serialize(users);

@@ -10,7 +10,7 @@ public class CommentFileRepository : ICommentRepository
 
     public CommentFileRepository()
     {
-        if (!File.Exists(filePath))
+        if (!File.Exists(filePath) || new FileInfo(filePath).Length == 0)
         {
             File.WriteAllText(filePath, "[]");
         }
@@ -20,7 +20,7 @@ public class CommentFileRepository : ICommentRepository
     {
         string commentsAsJson = await File.ReadAllTextAsync(filePath);
         List<Comment> comments = JsonSerializer.Deserialize<List<Comment>>(commentsAsJson)!;
-        int maxId = comments.Count > 0 ? comments.Max(c => c.CommentId) : 1;
+        int maxId = comments.Count > 0 ? comments.Max(c => c.CommentId) : 0;
         comment.CommentId = maxId + 1;
         comments.Add(comment);
         commentsAsJson = JsonSerializer.Serialize(comments);

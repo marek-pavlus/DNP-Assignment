@@ -19,10 +19,6 @@ public class User
     
     public static User Create(string username, string password)
     {
-        return new User
-        {
-            Username = username,
-            Password = password
-        };
+        return new User(username, password);
     }
 }

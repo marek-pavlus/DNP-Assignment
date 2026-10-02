@@ -6,37 +6,51 @@ public class SinglePostView
 {
     private readonly IPostRepository postRepository;
     private readonly ICommentRepository commentRepository;
+    private readonly IUserRepository userRepository;
 
-    public SinglePostView(IPostRepository postRepository, ICommentRepository commentRepository)
+    public SinglePostView(IPostRepository postRepository, ICommentRepository commentRepository, IUserRepository userRepository)
     {
         this.postRepository = postRepository;
         this.commentRepository = commentRepository;
+        this.userRepository = userRepository;
     }
 
     public async Task DisplayPostDetailsAsync(int postId)
     {
-        var post = await postRepository.GetSinglePostAsync(postId);
-        if (post == null)
+        try
         {
-            Console.WriteLine("Post not found.");
-            return;
-        }
+            var post = await postRepository.GetSinglePostAsync(postId);
+            var user = await userRepository.GetSingleUserAsync(post.UserId);
 
-        Console.WriteLine($"Title: {post.Title}");
-        Console.WriteLine($"Body: {post.Body}");
+            Console.WriteLine($"User: {user.Username}");
+            Console.WriteLine($"Title: {post.Title}");
+            Console.WriteLine($"Body: {post.Body}");
 
-        var comments = commentRepository.GetManyComments().Where(c => c.PostId == postId).ToList();
-        if (comments.Any())
-        {
-            Console.WriteLine("Comments:");
-            foreach (var comment in comments)
+            var comments = commentRepository.GetManyComments()
+                .Where(c => c.PostId == postId)
+                .ToList();
+
+            if (comments.Any())
             {
-                Console.WriteLine($"- {comment.Body}");
+                Console.WriteLine("Comments:");
+
+                foreach (var comment in comments)
+                {
+                    var commentUser =
+                        await userRepository.GetSingleUserAsync(comment.UserId);
+
+                    Console.WriteLine($"User: {commentUser.Username}");
+                    Console.WriteLine($"- {comment.Body}");
+                }
+            }
+            else
+            {
+                Console.WriteLine("No comments available.");
             }
         }
-        else
+        catch (InvalidOperationException ex)
         {
-            Console.WriteLine("No comments available.");
+            Console.WriteLine(ex.Message);
         }
     }
 }

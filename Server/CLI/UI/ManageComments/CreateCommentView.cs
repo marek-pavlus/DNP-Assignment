@@ -9,41 +9,43 @@ public class CreateCommentView
     private readonly IPostRepository postRepository;
     private readonly User currentUser;
 
-    public CreateCommentView(ICommentRepository commentRepository, IPostRepository postRepository, User currentUser)
+    public CreateCommentView(
+        ICommentRepository commentRepository,
+        IPostRepository postRepository,
+        User currentUser)
     {
         this.commentRepository = commentRepository;
         this.postRepository = postRepository;
         this.currentUser = currentUser;
     }
 
-    public async Task AddCommentAsync()
+    public async Task CreateCommentAsync()
     {
-        Console.WriteLine("Enter the post ID to comment on:");
-        int postId = int.Parse(Console.ReadLine());
+        Console.WriteLine("Enter the Post ID:");
 
-        var post = await postRepository.GetSinglePostAsync(postId);
-        if (post == null)
+        if (!int.TryParse(Console.ReadLine(), out int postId))
         {
-            throw new InvalidOperationException($"Post with ID '{postId}' not found.");
+            Console.WriteLine("Invalid Post ID.");
+            return;
         }
 
-        Console.WriteLine("Enter your comment:");
-        string? commentText = Console.ReadLine();
-
-        Comment newComment = Comment.Create(commentText, postId, currentUser.UserId);
-
-        Comment createdComment = await commentRepository.AddCommentAsync(newComment);
-
-        if (createdComment != null)
+        try
         {
-            Console.WriteLine("Comment Added Successfully:");
-            Console.WriteLine($"Post ID: {createdComment.PostId}");
-            Console.WriteLine($"User ID: {createdComment.UserId}");
-            Console.WriteLine($"Comment: {createdComment.Body}");
+            await postRepository.GetSinglePostAsync(postId);
+
+            Console.WriteLine("Enter your comment:");
+            string? commentText = Console.ReadLine();
+
+            Comment newComment =
+                Comment.Create(commentText, postId, currentUser.UserId);
+
+            await commentRepository.AddCommentAsync(newComment);
+
+            Console.WriteLine("Comment created successfully.");
         }
-        else
+        catch (InvalidOperationException ex)
         {
-            Console.WriteLine("Failed to add the comment. Please try again.");
+            Console.WriteLine(ex.Message);
         }
     }
 }

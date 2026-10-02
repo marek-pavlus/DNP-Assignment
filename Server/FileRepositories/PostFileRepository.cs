@@ -10,7 +10,7 @@ public class PostFileRepository : IPostRepository
 
     public PostFileRepository()
     {
-        if (!File.Exists(filePath))
+        if (!File.Exists(filePath) || new FileInfo(filePath).Length == 0)
         {
             File.WriteAllText(filePath, "[]");
         }
@@ -18,13 +18,13 @@ public class PostFileRepository : IPostRepository
 
     public async Task<Post> AddPostAsync(Post post)
     {
-        string commentsAsJson = await File.ReadAllTextAsync(filePath);
-        List<Post> posts = JsonSerializer.Deserialize<List<Post>>(commentsAsJson)!;
-        int maxId = posts.Count > 0 ? posts.Max(p => p.PostId) : 1;
+        string postsAsJson = await File.ReadAllTextAsync(filePath);
+        List<Post> posts = JsonSerializer.Deserialize<List<Post>>(postsAsJson)!;
+        int maxId = posts.Count > 0 ? posts.Max(p => p.PostId) : 0;
         post.PostId = maxId + 1;
         posts.Add(post);
-        commentsAsJson = JsonSerializer.Serialize(posts);
-        await File.WriteAllTextAsync(filePath, commentsAsJson);
+        postsAsJson = JsonSerializer.Serialize(posts);
+        await File.WriteAllTextAsync(filePath, postsAsJson);
         return post;
     }
 

@@ -11,20 +11,15 @@ public class DeletePostView
         this.postRepository = postRepository;
     }
 
-    public async Task DeletePostAsync()
+    public async Task DeletePostAsync(int postId)
     {
-        Console.WriteLine("Enter the ID of the post you want to delete:");
-        if (int.TryParse(Console.ReadLine(), out int postId))
+        try
         {
             var post = await postRepository.GetSinglePostAsync(postId);
-            if (post == null)
-            {
-                Console.WriteLine("Post not found.");
-                return;
-            }
 
-            Console.WriteLine($"Are you sure you want to delete the post titled '{post.Title}'? (y/n)");
-            var confirmation = Console.ReadLine();
+            Console.WriteLine($"Are you sure you want to delete '{post.Title}'? (y/n)");
+            string? confirmation = Console.ReadLine();
+
             if (confirmation?.ToLower() == "y")
             {
                 await postRepository.DeletePostAsync(postId);
@@ -32,12 +27,12 @@ public class DeletePostView
             }
             else
             {
-                Console.WriteLine("Deletion canceled.");
+                Console.WriteLine("Deletion cancelled.");
             }
         }
-        else
+        catch (InvalidOperationException ex)
         {
-            Console.WriteLine("Invalid input. Please enter a valid post ID.");
+            Console.WriteLine(ex.Message);
         }
     }
 }

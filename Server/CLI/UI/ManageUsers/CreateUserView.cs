@@ -26,23 +26,14 @@ public class CreateUserView
         {
             User createdUser = await userRepository.AddUserAsync(newUser);
 
-            if (createdUser != null)
-            {
-                Console.WriteLine("User Created Successfully:");
-                Console.WriteLine($"Username: {createdUser.Username}");
-                Console.WriteLine($"You know your password right?");
-                Console.WriteLine($"UserId: {createdUser.UserId}");
-            }
-            else
-            {
-                Console.WriteLine("Failed to create the user. Please try again.");
-            }
+            Console.WriteLine("User Created Successfully:");
+            Console.WriteLine($"Username: {createdUser.Username}");
+            Console.WriteLine("You know your password right?");
+            Console.WriteLine($"UserId: {createdUser.UserId}");
         }
         catch (InvalidOperationException ex)
         {
             Console.WriteLine(ex.Message);
-            Console.WriteLine("Exiting the program.");
-            Environment.Exit(0);
         }
     }
 }

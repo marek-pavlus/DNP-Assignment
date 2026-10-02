@@ -24,54 +24,56 @@ public class CliApp
     {
         while (true)
         {
-            Console.WriteLine("Welcome to the CLI App! Choose an option:");
-            Console.WriteLine("1. Login");
-            Console.WriteLine("2. Create User");
-            Console.WriteLine("3. Display Posts");
-            Console.WriteLine("4. View Post Details");
-            Console.WriteLine("5. Exit");
-
-            var input = Console.ReadLine();
-
-            switch (input)
+            if (CurrentUser == null)
             {
-                case "1":
-                    await LoginAsync();
-                    break;
-                case "2":
-                    await CreateUserAsync();
-                    break;
-                case "3":
-                    await DisplayPostsAsync();
-                    break;
-                case "4":
-                    await ViewPostDetailsAsync();
-                    break;
-                case "5":
-                    Console.WriteLine("Exiting the app.");
-                    return;
-                default:
-                    Console.WriteLine("Oooops, you didn't press something right. Exiting the program.");
-                    Environment.Exit(0);
-                    break;
-            }
+                Console.WriteLine("Welcome to the CLI App! Choose an option:");
+                Console.WriteLine("1. Login");
+                Console.WriteLine("2. Create User");
+                Console.WriteLine("3. View All Posts");
+                Console.WriteLine("4. View Post Details");
+                Console.WriteLine("5. Exit");
 
-            if (CurrentUser != null)
-            {
-                Console.WriteLine("Choose an option:");
-                Console.WriteLine("1. Display Posts");
-                Console.WriteLine("2. View Post Details");
-                Console.WriteLine("3. Create a Post");
-                Console.WriteLine("4. Delete a Post");
-                Console.WriteLine("5. Add Comment");
-                Console.WriteLine("6. Logout");
-
-                input = Console.ReadLine();
+                var input = Console.ReadLine();
 
                 switch (input)
                 {
                     case "1":
-                        await DisplayPostsAsync();
+                        await LoginAsync();
+                        break;
+                    case "2":
+                        await CreateUserAsync();
+                        break;
+                    case "3":
+                        DisplayPosts();
+                        break;
+                    case "4":
+                        await ViewPostDetailsAsync();
+                        break;
+                    case "5":
+                        Console.WriteLine("Exiting the app.");
+                        return;
+                    default:
+                        Console.WriteLine("Invalid option.");
+                        break;
+                }
+            }
+            else
+            {
+
+                Console.WriteLine("Choose an option:");
+                Console.WriteLine("1. View All Posts");
+                Console.WriteLine("2. View Post Details");
+                Console.WriteLine("3. Create a Post");
+                Console.WriteLine("4. Delete a Post");
+                Console.WriteLine("5. Add a Comment");
+                Console.WriteLine("6. Logout");
+
+                var input = Console.ReadLine();
+
+                switch (input)
+                {
+                    case "1":
+                        DisplayPosts();
                         break;
                     case "2":
                         await ViewPostDetailsAsync();
@@ -90,13 +92,13 @@ public class CliApp
                         Console.WriteLine("Logged out successfully.");
                         break;
                     default:
-                        Console.WriteLine("Oooops, you didn't press something right. Exiting the program.");
-                        Environment.Exit(0);
+                        Console.WriteLine("Invalid option.");
                         break;
                 }
             }
         }
     }
+
     private async Task LoginAsync()
     {
         Console.WriteLine("Enter your username:");
@@ -105,16 +107,19 @@ public class CliApp
         Console.WriteLine("Enter your password:");
         string? password = Console.ReadLine();
 
-        var user = await UserRepository.GetUserByUsernameAndPasswordAsync(username, password);
+        var user = await UserRepository
+            .GetUserByUsernameAndPasswordAsync(username, password);
+
         if (user != null)
         {
             CurrentUser = user;
-            Console.WriteLine("Login successful.");
+            Console.WriteLine($"Login successful. Welcome, {user.Username}!");
         }
         else
         {
-            Console.WriteLine("Invalid username or password. Exiting the program.");
-            Environment.Exit(0);
+            Console.WriteLine("Invalid username or password.");
+            Console.WriteLine("Press Enter to return to the main menu.");
+            Console.ReadLine();
         }
     }
 
@@ -149,15 +154,15 @@ public class CliApp
         }
 
         var createCommentView = new CreateCommentView(CommentRepository, PostRepository, CurrentUser);
-        await createCommentView.AddCommentAsync();
+        await createCommentView.CreateCommentAsync();
         Console.WriteLine("Press Enter to return to the main menu.");
         Console.ReadLine();
     }
 
-    private async Task DisplayPostsAsync()
+    private void DisplayPosts()
     {
         var listPostView = new ListPostView(PostRepository);
-        await listPostView.DisplayPostsAsync();
+        listPostView.DisplayPosts();
         Console.WriteLine("Press Enter to return to the main menu.");
         Console.ReadLine();
     }
@@ -167,7 +172,7 @@ public class CliApp
         Console.WriteLine("Enter the Post ID:");
         if (int.TryParse(Console.ReadLine(), out int postId))
         {
-            var singlePostView = new SinglePostView(PostRepository, CommentRepository);
+            var singlePostView = new SinglePostView(PostRepository, CommentRepository, UserRepository);
             await singlePostView.DisplayPostDetailsAsync(postId);
         }
         else
@@ -180,8 +185,18 @@ public class CliApp
     
     private async Task DeletePostAsync()
     {
-        var deletePostView = new DeletePostView(PostRepository);
-        await deletePostView.DeletePostAsync();
+        Console.WriteLine("Enter the Post ID:");
+
+        if (int.TryParse(Console.ReadLine(), out int postId))
+        {
+            var deletePostView = new DeletePostView(PostRepository);
+            await deletePostView.DeletePostAsync(postId);
+        }
+        else
+        {
+            Console.WriteLine("Invalid Post ID.");
+        }
+
         Console.WriteLine("Press Enter to return to the main menu.");
         Console.ReadLine();
     }

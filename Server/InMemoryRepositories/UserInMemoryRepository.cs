@@ -42,13 +42,13 @@ public class UserInMemoryRepository : IUserRepository
     
     public Task DeleteUserAsync(int id)
     {
-        User? postToRemove = users.SingleOrDefault(u => u.UserId == id);
-        if (postToRemove is null)
+        User? userToRemove = users.SingleOrDefault(u => u.UserId == id);
+        if (userToRemove is null)
         {
             throw new InvalidOperationException($"User with ID '{id}' not found");
         }
 
-        users.Remove(postToRemove);
+        users.Remove(userToRemove);
         return Task.CompletedTask;
     }
     

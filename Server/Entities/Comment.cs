@@ -21,12 +21,7 @@ public class Comment
     // Static factory method
     public static Comment Create(string body, int postId, int userId)
     {
-        return new Comment
-        {
-            Body = body,
-            PostId = postId,
-            UserId = userId
-        };
+        return new Comment(body, postId, userId);
     }
 }
 

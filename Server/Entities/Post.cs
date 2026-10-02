@@ -16,11 +16,6 @@ public class Post
     
     public static Post Create(string title, string body, int userId)
     {
-        return new Post(title, body, userId)
-        {
-            Title = title,
-            Body = body,
-            UserId = userId
-        };
+        return new Post(title, body, userId);
     }
 }

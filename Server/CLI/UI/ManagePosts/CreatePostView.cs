@@ -27,16 +27,9 @@ public class CreatePostView
 
         Post createdPost = await postRepository.AddPostAsync(newPost);
 
-        if (createdPost != null)
-        {
-            Console.WriteLine("Post Created Successfully:");
-            Console.WriteLine($"Title: {createdPost.Title}");
-            Console.WriteLine($"Body: {createdPost.Body}");
-            Console.WriteLine($"UserId: {createdPost.UserId}");
-        }
-        else
-        {
-            Console.WriteLine("Failed to create the post. Please try again.");
-        }
+        Console.WriteLine("Post Created Successfully:");
+        Console.WriteLine($"Title: {createdPost.Title}");
+        Console.WriteLine($"Body: {createdPost.Body}");
+        Console.WriteLine($"UserId: {createdPost.UserId}");
     }
 }
