@@ -1,0 +1,59 @@
+@page "/posts"
+@using ApiContracts.Posts
+@using ApiContracts.Users
+@using BlazorApp.Services
+@inject IPostService PostService
+@inject IUserService UserService
+
+<PageTitle>Posts</PageTitle>
+
+<h3>Posts</h3>
+
+@if (!string.IsNullOrEmpty(errorLabel))
+{
+    <label style="color: red">@errorLabel</label>
+    <br/>
+}
+
+@if (posts.Count == 0)
+{
+    <p>No posts yet.</p>
+}
+else
+{
+    <ul>
+        @foreach (var post in posts)
+        {
+            <li>
+                <a href="/posts/@post.PostId"><strong>@post.Title</strong></a> by @authors.GetValueOrDefault(post.UserId, "unknown")
+                <p>@post.Body</p>
+            </li>
+        }
+    </ul>
+}
+
+
+@code {
+    private List<PostDto> posts = new();
+    private Dictionary<int, string> authors = new();
+    private string errorLabel = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            posts = (await PostService.GetPostsAsync()).ToList();
+
+            foreach (int userId in posts.Select(p => p.UserId).Distinct())
+            {
+                UserDto user = await UserService.GetUserAsync(userId);
+                authors[userId] = user.Username;
+            }
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            errorLabel = $"Error: {e.Message}";
+        }
+    }
+}

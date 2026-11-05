@@ -1,0 +1,74 @@
+@attribute [Authorize]
+@page "/create-post"
+@using System.Security.Claims
+@using ApiContracts.Posts
+@using BlazorApp.Services
+@inject IPostService PostService
+@inject NavigationManager NavMgr
+
+<PageTitle>Create Post</PageTitle>
+
+<h3>Create a New Post</h3>
+
+<div class="form-group mb-3">
+    <label>Title:</label>
+    <input type="text" @bind="title" class="form-control" />
+</div>
+
+<div class="form-group mb-3">
+    <label>Body:</label>
+    <textarea @bind="body" class="form-control" rows="4"></textarea>
+</div>
+
+@if (!string.IsNullOrEmpty(errorLabel))
+{
+    <label style="color: red">@errorLabel</label>
+    <br/>
+}
+
+<button class="btn btn-primary" @onclick="() => CreateNewPostAsync()">Create Post</button>
+
+@code {
+    [CascadingParameter] 
+    public Task<AuthenticationState> State { get; set; } = null!;
+
+    private int currentUserId;
+    private string title = "";
+    private string body = "";
+    private string errorLabel = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        AuthenticationState authState = await State;
+        ClaimsPrincipal user = authState.User;
+
+        if (user.Identity != null && user.Identity.IsAuthenticated)
+        {
+            IEnumerable<Claim> claims = user.Claims;
+            string userIdAsString = claims.Single(c => c.Type == ClaimTypes.NameIdentifier).Value;
+            currentUserId = int.Parse(userIdAsString);
+        }
+    }
+
+    private async Task CreateNewPostAsync()
+    {
+        errorLabel = "";
+        try
+        {
+            CreatePostDto newPost = new CreatePostDto
+            {
+                Title = title,
+                Body = body,
+                UserId = currentUserId 
+            };
+
+            await PostService.AddPostAsync(newPost);
+            NavMgr.NavigateTo("/");
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            errorLabel = $"Error: {e.Message}";
+        }
+    }
+}

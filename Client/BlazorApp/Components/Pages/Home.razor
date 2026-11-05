@@ -1,0 +1,17 @@
+﻿@page "/"
+@inject NavigationManager NavMgr
+<PageTitle>Home</PageTitle>
+
+<h1>Reddit Forum</h1>
+
+<AuthorizeView>
+    <Authorized>
+        <h3>Welcome, @context.User.Identity.Name</h3>
+        <p>Here you can browse interesting posts.</p>
+    </Authorized>
+    <NotAuthorized>
+        You are not logged in!
+        <button @onclick='() => NavMgr.NavigateTo("login")'>Log in here</button>
+        <button @onclick='() => NavMgr.NavigateTo("create-user")'>Create an account</button>
+    </NotAuthorized>
+</AuthorizeView>

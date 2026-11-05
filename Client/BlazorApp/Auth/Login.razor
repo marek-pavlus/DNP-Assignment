@@ -1,0 +1,48 @@
+@page "/login"
+@using Microsoft.AspNetCore.Components.Web
+@using Microsoft.AspNetCore.Components.Authorization
+@inject AuthenticationStateProvider AuthProvider
+@inject NavigationManager navMgr
+
+<PageTitle>Login</PageTitle>
+
+<AuthorizeView>
+    <NotAuthorized>
+        <h3>Please log in</h3>
+        <label>Username:</label>
+        <input type="text" @bind="username"/>
+        <label>Password:</label>
+        <input type="password" @bind="password"/>
+        @if (!string.IsNullOrEmpty(errorLabel))
+        {
+            <label style="color: red">
+                @errorLabel
+            </label>
+        }
+        <button @onclick="() => LoginAsync()">Log in</button>
+    </NotAuthorized>
+    <Authorized>
+        <h3>Hello, @context.User.Identity.Name</h3>
+    </Authorized>
+</AuthorizeView>
+
+@code {
+    private string username = "";
+    private string password = "";
+    private string errorLabel = "";
+
+    private async Task LoginAsync()
+    {
+        errorLabel = "";
+        try
+        {
+            await ((SimpleAuthProvider)AuthProvider).LoginAsync(username, password);
+            navMgr.NavigateTo("/");
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            errorLabel = $"Error: {e.Message}";
+        }
+    }
+}

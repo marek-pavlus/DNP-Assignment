@@ -1,0 +1,150 @@
+@page "/posts/{postId:int}"
+@using ApiContracts.Posts
+@using ApiContracts.Users
+@using BlazorApp.Services
+@using ApiContracts.Comments
+@using System.Security.Claims
+@inject IPostService PostService
+@inject IUserService UserService
+@inject ICommentService CommentService
+@inject NavigationManager NavMgr
+
+
+@if (!string.IsNullOrEmpty(errorLabel))
+{
+    <label style="color: red">@errorLabel</label>
+}
+else if (post is null)
+{
+    <p>Loading...</p>
+}
+else
+{
+    <h1>@post.Title</h1>
+    <p>by @authorName</p>
+    <p>@post.Body</p>
+    
+    <h4>Comments</h4>
+
+    @if (comments.Count == 0)
+    {
+        <p>No comments yet.</p>
+    }
+    else
+    {
+        <ul>
+            @foreach (CommentDto comment in comments)
+            {
+                <li>
+                    <strong>@authors.GetValueOrDefault(comment.UserId, "unknown")</strong>: @comment.Body
+                </li>
+            }
+        </ul>
+    }
+
+    <AuthorizeView>
+        <Authorized>
+            <h5>Add a comment</h5>
+            <textarea @bind="newCommentBody" class="form-control mb-2" rows="3"></textarea>
+
+            @if (!string.IsNullOrEmpty(commentError))
+            {
+                <label style="color: red">@commentError</label>
+                <br/>
+            }
+
+            <button class="btn btn-primary" @onclick="AddCommentAsync">Add comment</button>
+        </Authorized>
+        <NotAuthorized>
+            <button @onclick='() => NavMgr.NavigateTo("login")'>Log in to write a comment</button>
+        </NotAuthorized>
+    </AuthorizeView>
+}
+
+@code {
+    [CascadingParameter]
+    public Task<AuthenticationState> State { get; set; } = null!;
+
+    [Parameter]
+    public int PostId { get; set; }
+
+    private PostDto? post;
+    private string authorName = "";
+    private string errorLabel = "";
+    private List<CommentDto> comments = new();
+    private Dictionary<int, string> authors = new();
+
+    private int currentUserId;
+    private string newCommentBody = "";
+    private string commentError = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        AuthenticationState authState = await State;
+        ClaimsPrincipal claimsPrincipal = authState.User;
+
+        if (claimsPrincipal.Identity != null && claimsPrincipal.Identity.IsAuthenticated)
+        {
+            string userIdAsString = claimsPrincipal.Claims
+                .Single(c => c.Type == ClaimTypes.NameIdentifier).Value;
+            currentUserId = int.Parse(userIdAsString);
+        }
+
+        try
+        {
+            post = await PostService.GetPostAsync(PostId);
+            UserDto user = await UserService.GetUserAsync(post.UserId);
+            authorName = user.Username;
+            await LoadCommentsAsync();
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            errorLabel = $"Error: {e.Message}";
+        }
+    }
+
+    private async Task LoadCommentsAsync()
+    {
+        comments = (await CommentService.GetCommentsAsync(PostId)).ToList();
+
+        foreach (int userId in comments.Select(c => c.UserId).Distinct())
+        {
+            if (!authors.ContainsKey(userId))
+            {
+                UserDto commenter = await UserService.GetUserAsync(userId);
+                authors[userId] = commenter.Username;
+            }
+        }
+    }
+
+    private async Task AddCommentAsync()
+    {
+        commentError = "";
+
+        if (string.IsNullOrWhiteSpace(newCommentBody))
+        {
+            commentError = "Comment cannot be empty.";
+            return;
+        }
+
+        try
+        {
+            CreateCommentDto newComment = new CreateCommentDto
+            {
+                Body = newCommentBody,
+                PostId = PostId,
+                UserId = currentUserId
+            };
+
+            await CommentService.AddCommentAsync(newComment);
+            newCommentBody = "";
+            await LoadCommentsAsync();
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            commentError = $"Error: {e.Message}";
+        }
+    }
+}
