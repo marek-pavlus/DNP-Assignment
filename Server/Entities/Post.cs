@@ -14,8 +14,15 @@ public class Post
         UserId = userId;
     }
     
+    private Post() // Private constructor for EF Core
+    {
+    }
+    
     public static Post Create(string title, string body, int userId)
     {
         return new Post(title, body, userId);
     }
+    
+    public User User { get; set; } = null!;
+    public ICollection<Comment> Comments { get; set; } = new List<Comment>();
 }

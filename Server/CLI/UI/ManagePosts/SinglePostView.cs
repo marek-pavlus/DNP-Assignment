@@ -26,7 +26,7 @@ public class SinglePostView
             Console.WriteLine($"Title: {post.Title}");
             Console.WriteLine($"Body: {post.Body}");
 
-            var comments = commentRepository.GetManyComments()
+            var comments = commentRepository.GetAllCommentsAsync()
                 .Where(c => c.PostId == postId)
                 .ToList();
 

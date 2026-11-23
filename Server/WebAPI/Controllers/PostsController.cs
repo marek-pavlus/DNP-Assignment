@@ -1,7 +1,10 @@
+using ApiContracts.Comments;
 using ApiContracts.Posts;
+using ApiContracts.Users;
 using Entities;
 using Microsoft.AspNetCore.Mvc;
 using RepositoryContracts;
+using Microsoft.EntityFrameworkCore;
 
 namespace WebAPI.Controllers;
 
@@ -49,75 +52,54 @@ public class PostsController : ControllerBase
         };
 
         return CreatedAtAction(
-            nameof(GetSinglePost),
+            nameof(GetPost),
             new { id = createdPost.PostId },
             postDto);
     }
     
     [HttpGet("{id:int}")]
-    public async Task<ActionResult<PostDto>> GetSinglePost([FromRoute] int id)
+    public async Task<ActionResult<PostDto>> GetPost(
+        [FromRoute] int id,
+        [FromQuery] bool includeAuthor,
+        [FromQuery] bool includeComments)
     {
-        try
-        {
-            Post post = await postRepository.GetSinglePostAsync(id);
+        IQueryable<Post> query = postRepository
+            .GetAllPostsAsync()
+            .Where(p => p.PostId == id);
 
-            PostDto postDto = new PostDto
-            {
-                PostId = post.PostId,
-                Title = post.Title,
-                Body = post.Body,
-                UserId = post.UserId
-            };
+        if (includeAuthor)
+            query = query.Include(p => p.User);
 
-            return Ok(postDto);
-        }
-        catch (InvalidOperationException)
-        {
-            return NotFound($"Post with ID '{id}' not found.");
-        }
-    }
-    
-    [HttpGet]
-    public ActionResult<IEnumerable<PostDto>> GetManyPosts(
-        [FromQuery] string? title,
-        [FromQuery] int? userId,
-        [FromQuery] string? username)
-    {
-        IQueryable<Post> posts = postRepository.GetManyPosts();
+        if (includeComments)
+            query = query.Include(p => p.Comments);
 
-        if (!string.IsNullOrWhiteSpace(title))
-        {
-            posts = posts.Where(post =>
-                post.Title.Contains(title, StringComparison.OrdinalIgnoreCase));
-        }
-
-        if (userId.HasValue)
-        {
-            posts = posts.Where(post => post.UserId == userId.Value);
-        }
-
-        if (!string.IsNullOrWhiteSpace(username))
-        {
-            List<int> matchingUserIds = userRepository
-                .GetManyUsers()
-                .Where(user =>
-                    user.Username.Contains(username, StringComparison.OrdinalIgnoreCase))
-                .Select(user => user.UserId)
-                .ToList();
-
-            posts = posts.Where(post =>
-                matchingUserIds.Contains(post.UserId));
-        }
-
-        IEnumerable<PostDto> postDtos = posts.Select(post => new PostDto
+        PostDto? dto = await query.Select(post => new PostDto
         {
             PostId = post.PostId,
             Title = post.Title,
             Body = post.Body,
-            UserId = post.UserId
-        });
+            UserId = post.UserId,
 
-        return Ok(postDtos);
+            Author = includeAuthor
+                ? new UserDto
+                {
+                    UserId = post.User.UserId,
+                    Username = post.User.Username
+                }
+                : null,
+
+            Comments = includeComments
+                ? post.Comments.Select(c => new CommentDto
+                {
+                    CommentId = c.CommentId,
+                    Body = c.Body,
+                    PostId = c.PostId,
+                    UserId = c.UserId
+                }).ToList()
+                : new List<CommentDto>()
+        }).FirstOrDefaultAsync();
+
+        return dto == null ? NotFound() : Ok(dto);
     }
     
     [HttpPut("{id:int}")]

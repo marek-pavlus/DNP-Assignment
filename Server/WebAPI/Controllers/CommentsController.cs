@@ -96,7 +96,7 @@ public class CommentsController : ControllerBase
         [FromQuery] string? username,
         [FromQuery] int? postId)
     {
-        IQueryable<Comment> comments = commentRepository.GetManyComments();
+        IQueryable<Comment> comments = commentRepository.GetAllCommentsAsync();
 
         if (userId.HasValue)
         {
@@ -107,7 +107,7 @@ public class CommentsController : ControllerBase
         if (!string.IsNullOrWhiteSpace(username))
         {
             List<int> matchingUserIds = userRepository
-                .GetManyUsers()
+                .GetAllUsersAsync()
                 .Where(user =>
                     user.Username.Contains(
                         username,

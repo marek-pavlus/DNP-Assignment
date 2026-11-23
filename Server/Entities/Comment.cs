@@ -14,14 +14,17 @@ public class Comment
         UserId = userId;
     }
     
-    private Comment()
+    private Comment() // Private constructor for EF Core
     {
-        
-    } 
+    }
+    
     // Static factory method
     public static Comment Create(string body, int postId, int userId)
     {
         return new Comment(body, postId, userId);
     }
+    
+    public User User { get; set; } = null!;
+    public Post Post { get; set; } = null!;
 }
 

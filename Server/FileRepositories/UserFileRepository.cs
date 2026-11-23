@@ -69,7 +69,7 @@ public class UserFileRepository : IUserRepository
         await File.WriteAllTextAsync(filePath, usersAsJson);
     }
     
-    public IQueryable<User> GetManyUsers() {
+    public IQueryable<User> GetAllUsersAsync() {
         string usersAsJson = File.ReadAllTextAsync(filePath).Result;
         List<User> users = JsonSerializer.Deserialize<List<User>>(usersAsJson)!;
         return users.AsQueryable();

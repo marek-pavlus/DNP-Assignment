@@ -1,6 +1,7 @@
 using ApiContracts.Users;
 using Entities;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using RepositoryContracts;
 
 namespace WebAPI.Controllers;
@@ -21,7 +22,7 @@ public class UsersController : ControllerBase
         [FromBody] CreateUserDto request)
     {
         User? existingUser = userRepository
-            .GetManyUsers()
+            .GetAllUsersAsync()
             .FirstOrDefault(user => user.Username == request.Username);
 
         if (existingUser is not null)
@@ -67,24 +68,15 @@ public class UsersController : ControllerBase
     }
     
     [HttpGet]
-    public ActionResult<IEnumerable<UserDto>> GetManyUsers(
-        [FromQuery] string? username)
+    public async Task<ActionResult<IEnumerable<User>>> GetManyUsers([FromQuery] string? userNameContains = null)
     {
-        IQueryable<User> users = userRepository.GetManyUsers();
+        IList<User> users = await userRepository.GetAllUsersAsync()
+            .Where(
+                u => userNameContains == null ||
+                     u.Username.ToLower().Contains(userNameContains.ToLower())
+            ).ToListAsync();
 
-        if (!string.IsNullOrWhiteSpace(username))
-        {
-            users = users.Where(user =>
-                user.Username.Contains(username, StringComparison.OrdinalIgnoreCase));
-        }
-
-        IEnumerable<UserDto> userDtos = users.Select(user => new UserDto
-        {
-            UserId = user.UserId,
-            Username = user.Username
-        });
-
-        return Ok(userDtos);
+        return Ok(users);
     }
     
     [HttpPut("{id:int}")]
@@ -97,7 +89,7 @@ public class UsersController : ControllerBase
             User user = await userRepository.GetSingleUserAsync(id);
 
             User? existingUser = userRepository
-                .GetManyUsers()
+                .GetAllUsersAsync()
                 .FirstOrDefault(u =>
                     u.Username == request.Username &&
                     u.UserId != id);

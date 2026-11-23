@@ -69,7 +69,7 @@ public class PostFileRepository : IPostRepository
         await File.WriteAllTextAsync(filePath, postsAsJson);
     }
     
-    public IQueryable<Post> GetManyPosts() {
+    public IQueryable<Post> GetAllPostsAsync() {
         string postsAsJson = File.ReadAllTextAsync(filePath).Result;
         List<Post> posts = JsonSerializer.Deserialize<List<Post>>(postsAsJson)!;
         return posts.AsQueryable();

@@ -15,7 +15,7 @@ public class ListPostView
 
     public void DisplayPosts()
     {
-        var posts = postRepository.GetManyPosts().ToList();
+        var posts = postRepository.GetAllPostsAsync().ToList();
 
         if (posts.Any())
         {

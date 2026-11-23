@@ -12,13 +12,15 @@ public class User
         Password = password;
     }
 
-    private User()
+    private User() // Private constructor for EF Core
     {
-        
     }
     
     public static User Create(string username, string password)
     {
         return new User(username, password);
     }
+    
+    public ICollection<Post> Posts { get; set; } = new List<Post>();
+    public ICollection<Comment> Comments { get; set; } = new List<Comment>();
 }

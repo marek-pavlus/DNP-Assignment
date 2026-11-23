@@ -89,7 +89,7 @@ public Task<Comment> AddCommentAsync(Comment comment)
         return Task.FromResult(comment);
     }
     
-    public IQueryable<Comment> GetManyComments()
+    public IQueryable<Comment> GetAllCommentsAsync()
     {
         return comments.AsQueryable();
     }

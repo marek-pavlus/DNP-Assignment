@@ -20,7 +20,7 @@ public class AuthController : ControllerBase
     [HttpPost("login")]
     public ActionResult<UserDto> Login([FromBody] LoginRequest request)
     {
-        var user = userRepository.GetManyUsers().SingleOrDefault(u => u.Username == request.Username);
+        var user = userRepository.GetAllUsersAsync().SingleOrDefault(u => u.Username == request.Username);
 
         if (user == null)
         {
